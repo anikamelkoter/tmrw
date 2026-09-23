@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>tmrw</title><link rel="stylesheet" href="/static/style.css"><script defer src="/static/app.js"></script></head><body><div id="tmrw-home-demo">
+
+<header class="top"><h1 class="logo">tmrw</h1><div class="actions"><button type="button" class="icon-button cursor-interaction" id="tmrw-menu" aria-label="Open calendar menu" aria-expanded="false" aria-controls="tmrw-menu-panel"><span aria-hidden="true">☰</span></button><button type="button" class="icon-button cursor-interaction" id="tmrw-profile" aria-label="Open profile" aria-expanded="false" aria-controls="tmrw-profile-panel"><span class="profile-symbol" aria-hidden="true">●</span></button></div></header>
+<div class="popover" id="tmrw-menu-panel" hidden><div class="month-controls"><button type="button" data-month="-1" aria-label="Previous month">←</button><span id="tmrw-year">2026</span><button type="button" data-month="1" aria-label="Next month">→</button></div><label><input type="checkbox" id="tmrw-dates"> Show day numbers</label></div>
+<div class="popover" id="tmrw-profile-panel" hidden>
+<h3 id="account-title">your space.</h3>
+<form id="account-form">
+<div class="auth-tabs"><button type="button" id="mode-login">log in</button><button type="button" id="mode-create">create profile</button></div>
+<label id="user-label">user number<input name="user" inputmode="numeric" autocomplete="username" placeholder="#1"></label>
+<label>password<input name="password" type="password" autocomplete="current-password" required minlength="12" maxlength="128"></label>
+<label id="confirm-label" hidden>confirm password<input name="confirm" type="password" autocomplete="new-password" maxlength="128"></label>
+<button type="submit" id="account-submit">log in</button>
+<p id="auth-help">Use your number and password on any device.</p>
+</form>
+<div id="account-signed" hidden><p id="account-number"></p><p>Keep your number and password safe. Password recovery is not available yet.</p><button type="button" id="account-logout">log out</button></div>
+<p id="account-message" role="status"></p>
+</div>
+<main class="calendar"><h2 class="month" id="tmrw-month" aria-live="polite">september</h2><div class="days" id="tmrw-days" aria-label="September 2026 calendar"></div></main>
+
+<section id="tmrw-sheet" class="day-sheet" aria-labelledby="tmrw-day-title" hidden>
+<div class="sheet-content" id="tmrw-sheet-content"><button type="button" id="tmrw-close" class="sheet-close cursor-interaction" aria-label="Return to calendar">×</button><h2 id="tmrw-day-title" class="day-heading"></h2>
+<div class="markers" aria-label="Daily rating"><button class="marker cursor-interaction" aria-label="Daily marker 1" aria-pressed="false"></button><button class="marker cursor-interaction" aria-label="Daily marker 2" aria-pressed="false"></button><button class="marker cursor-interaction" aria-label="Daily marker 3" aria-pressed="false"></button><button class="marker cursor-interaction" aria-label="Daily marker 4" aria-pressed="false"></button><button class="marker cursor-interaction" aria-label="Daily marker 5" aria-pressed="false"></button></div>
+<div class="entry-section"><h3>from yesterday:</h3><div id="tmrw-yesterday"></div></div>
+<div class="entry-section"><h3><label for="tmrw-today">about today:</label></h3><textarea id="tmrw-today" aria-label="About today" maxlength="50000"></textarea></div>
+<div class="entry-section"><h3>for tmrw:</h3><div id="tmrw-tomorrow"></div></div>
+</div></section><span id="tmrw-status" class="sr" aria-live="polite"></span>
+
+</div>
+</body></html>
