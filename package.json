@@ -1,0 +1,17 @@
+{
+  "name": "tmrw",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {"node": ">=22"},
+  "scripts": {
+    "dev": "wrangler dev",
+    "test": "node --test tests/*.test.js",
+    "check": "node --check src/worker.js && node --check public/static/app.js",
+    "deploy": "wrangler deploy",
+    "deploy:check": "wrangler deploy --dry-run",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote"
+  },
+  "devDependencies": {"wrangler": "4.138.0"}
+}

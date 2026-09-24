@@ -1,83 +1,78 @@
 # tmrw
 
-A black-and-white diary and calendar. Each day expands into a journal, a five-shade rating, yesterday's checklist, and plans for tomorrow.
+A quiet black-and-white diary. Pick a shade for the day, write about it, and leave a short checklist for tomorrow.
 
-## Included
+This version runs on **Cloudflare Workers + D1**. The website, numbered accounts, passwords and diary database can use Cloudflare's Free plan. No Python server, paid disk, downloads or manual file uploads are needed.
 
-- The approved calendar design, gray hover, smooth expand/collapse, and saved rating shades.
-- Numbered accounts with a password. The first account created in an empty database is #1, then #2, and so on. Create your account before sharing the site if you want #1.
-- Three plans for tomorrow. The next day reads those plans as its “from yesterday” checklist. Completion is tracked on the next day, independently of the original list. If the original text changes, the associated completion resets.
-- Diary text, checklist changes, and ratings autosave to the server.
-- Cross-device access using the same account number and password. Reload or refocus the calendar to fetch other-device changes. Simultaneous conflicting edits are rejected instead of silently overwriting data; copy unsaved text before reloading when warned.
-- Password hashes (scrypt), HTTP-only session cookies, login rate limits, private per-account database queries, and version checks.
+## Launch from this GitHub repo
 
-## Run on your computer
+1. Sign into [Cloudflare](https://dash.cloudflare.com/), using the Free plan.
+2. Open **Workers & Pages → Create application → Import a repository** (or **Connect to Git**).
+3. Authorize GitHub and select **anikamelkoter/tmrw**, branch **main**.
+4. Use these settings:
 
-Use Python 3.12 or later. From this folder:
+   | Setting | Value |
+   | --- | --- |
+   | Worker name | `tmrw` |
+   | Root directory | repository root |
+   | Build command | leave blank |
+   | Deploy command | `npm run deploy` |
 
-```sh
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-COOKIE_SECURE=0 python app.py
-```
+5. Deploy. Wrangler requests a D1 database bound as **DB**. Accept its free database provisioning if prompted. The app initializes its tables on the first API request.
+6. Open the **workers.dev** URL shown by Cloudflare. Create your account before sharing the link if you want user **#1**.
+7. In the Worker's **Bindings**, find the D1 database ID. Save that non-secret ID as `database_id` inside the `d1_databases` entry in `wrangler.jsonc` using GitHub's editor (or ask your coding assistant to do it). Cloudflare's automatic provisioning does not write this ID back to GitHub. Pinning it makes the intended database explicit for future builds. Never delete/recreate that database to update the website.
 
-Open http://127.0.0.1:5000. The profile icon opens login and account creation. Create a password of at least 12 characters and keep your assigned number.
+Once connected, commits to **main** trigger Cloudflare deployments. Keep using this repository for changes. GitHub Pages is not the host for the login/database version.
 
-On Windows PowerShell, activate with `.venv\Scripts\Activate.ps1`, then set `$env:COOKIE_SECURE="0"` and run `python app.py`.
+### If Cloudflare asks you to create the database manually
 
-The database is created in `data/`. Local operation is for testing; it does not make your computer a public website. Demo entries from the earlier ChatGPT preview are not automatically imported.
+Create **Storage & databases → D1 → Create database**, named `tmrw-db`. Copy its database ID into the `d1_databases` entry in `wrangler.jsonc` on GitHub, then retry deployment. No SQL pasting is needed for initial setup.
 
-## Upload to GitHub
+No account credentials or Cloudflare tokens are committed to this repository. Connecting your Cloudflare account is a one-time owner step; this code change alone does not publish a live site.
 
-1. Unzip this download.
-2. Open your `tmrw` repository on GitHub.
-3. Choose **Add file → Upload files**.
-4. Upload the contents of this folder, including the `static` and `tests` folders. Upload the files, not the ZIP itself.
-5. Commit the upload. Do not upload `data/`, `.venv/`, passwords, or database files.
+## Free-plan limits
 
-If using Git locally, `.gitignore` already excludes those files. No GitHub commit or deployment was made when this package was created.
+As checked September 24, 2026, Workers Free includes 100,000 dynamic requests/day. D1 Free includes 5 million rows read/day, 100,000 rows written/day and 5 GB total storage. Static asset requests are served separately. Free is subject to those limits, not unlimited hosting. Stay on the Free plan; a custom domain is optional.
 
-## Make accounts work across devices
+Official references: [Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/), [D1 pricing](https://developers.cloudflare.com/d1/platform/pricing/), [automatic resource provisioning](https://developers.cloudflare.com/workers/wrangler/configuration/#automatic-provisioning), [GitHub-connected builds](https://developers.cloudflare.com/workers/ci-cd/builds/).
 
-GitHub stores your source code. **GitHub Pages cannot run this Python server or database.** Host the complete app on a Python or Docker web host, and use that host's HTTPS URL for the site. Keep frontend and API on the same origin.
+## Features
 
-### Python host configuration
+- Original calendar layout with blank rounded squares, gray hover, and smooth day expansion.
+- Five rating shades; hover previews the cumulative scale, click saves the choice, calendar reflects the selected shade.
+- “For tmrw” feeds the next calendar day's “from yesterday” tasks, including month and year boundaries. Completion belongs to the next day; changing source text resets its completion.
+- Diary, rating and checklist autosave per account. The same user number and password work on another device.
+- Sequential account numbers allocated by D1, starting at 1 on a new database.
+- Passwords hashed with salted native scrypt, random server-side sessions, HTTP-only cookies, request-origin checks, and database-backed login throttling.
+- Atomic entry version checks prevent one device silently overwriting another's changes.
 
-- Install: `pip install -r requirements.txt`
-- Start: `gunicorn --bind 0.0.0.0:8000 --workers 2 --threads 2 app:app`
-- Route the host's HTTPS traffic to port 8000 (or substitute its required port).
-- Mount a persistent writable disk at `/data`.
-- Set `DATABASE_PATH=/data/tmrw.sqlite3`.
-- Set `COOKIE_SECURE=1` (the default). Use HTTPS; do not disable secure cookies in production.
-- Run one app instance with the same persistent disk. Multiple workers on that instance are supported; separate replicas with separate disks are not.
+## Local development (optional)
 
-### Docker option
+Use Node.js 22.13+:
 
 ```sh
-docker build -t tmrw .
-docker volume create tmrw-data
-docker run -p 8000:8000 -v tmrw-data:/data tmrw
+npm ci
+npm run dev
 ```
 
-Put this behind your host's HTTPS proxy. For local HTTP testing only, add `-e COOKIE_SECURE=0` to `docker run`.
-
-Use a persistent volume: an ephemeral filesystem will lose accounts when replaced or redeployed. Back up the database regularly using SQLite's backup API. Keep backups private. No provider account or hosting subscription is included.
-
-## Current limits
-
-- No password reset or recovery email yet. Forgotten passwords cannot be recovered through the app. User numbers are identifiers, not secrets.
-- Requires an internet connection for saves. Failed saves remain on screen with a warning; keep the tab open until saved. Unsaved edits are not an offline backup.
-- Diary text is stored in the database without end-to-end encryption. The server administrator can access it.
-- Authentication limits use the server-observed IP. Behind a proxy these limits may be shared by visitors; configure trusted proxy handling for your specific host before a broad public launch. Do not blindly trust forwarded IP headers.
-- This is a small-app implementation, not a completed security audit. Account deletion, password recovery and larger-scale infrastructure can be added next.
-
-## Tests
+Open the localhost URL that Wrangler prints. Local D1 data is separate from the live database; schema initialization is automatic. Development/test accounts do not consume public account numbers.
 
 ```sh
-python -m unittest discover -s tests -v
+npm test
+npm run check
+npm run deploy:check
 ```
 
-Tests cover account numbering, authentication, separate-user privacy, cross-client retrieval, edit conflicts, logout, validation, CSRF request headers and rate limiting. The visual design is carried forward from the approved demo; this package has not been tested in a real browser here.
+Tests run the Worker handlers against real SQLite through a D1 adapter: account numbering, password validation, sessions, two-device reads, user isolation, stale-write rejection, request validation and throttling. `deploy:check` validates and bundles without publishing. Signup, entry retrieval, logout and login were also exercised in Cloudflare's local workerd runtime. Live free-tier CPU usage and full browser behavior still need verification after deployment; local tests do not simulate Cloudflare's CPU quotas.
 
-Implementation references: [Flask production deployment](https://flask.palletsprojects.com/en/stable/deploying/) and [Flask security considerations](https://flask.palletsprojects.com/en/stable/web-security/).
+## Data and maintenance
+
+- `public/` is the only published asset directory; server source and tests are not served to visitors.
+- `src/worker.js` contains the API; `src/schema.js` initializes empty databases idempotently.
+- `migrations/0001_initial.sql` records the initial schema. Add versioned migrations for later schema changes; do not drop account tables during deploys.
+- A daily scheduled job removes expired sessions and login throttle records.
+- After deployment, export backups from the D1 dashboard. Keep backups private.
+- If you used the previous local Python version, those local accounts are not automatically imported. Keep that database until a migration is arranged. The former code remains available in Git history.
+- There is no email/password recovery yet. Keep your user number and password safe.
+- Diary content is private between users, but it is not end-to-end encrypted; the database owner can access it.
+- Autosave needs internet. If saving fails, leave the page open. A conflict warning means copy unsaved text before reloading. This is not an offline diary.
