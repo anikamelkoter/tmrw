@@ -2,7 +2,7 @@
 (()=>{
 const root=document.getElementById('tmrw-home-demo'),q=id=>root.querySelector('#tmrw-'+id),calendar=root.querySelector('.calendar'),sheet=q('sheet'),content=q('sheet-content');
 const months=['january','february','march','april','may','june','july','august','september','october','november','december'],weekdays=['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
-let year=2026,month=8,selected='',origin=null,busy=false,opened=false,oldHeight='';const entries=new Map(),reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
+const now=new Date();let year=now.getFullYear(),month=now.getMonth(),selected='',origin=null,busy=false,opened=false,oldHeight='';const entries=new Map(),reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
 const shades=['#404040','#666666','#919191','#bcbcbc','#ffffff'];
 const blank=()=>({yesterday:Array.from({length:3},()=>({text:'',done:false})),tomorrow:Array.from({length:3},()=>({text:'',done:false})),today:'',rating:0});
 const markers=Array.from(root.querySelectorAll('.marker'));
